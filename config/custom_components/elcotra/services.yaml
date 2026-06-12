@@ -1,0 +1,65 @@
+import_historical_costs:
+  name: Import Historical Costs
+  description: Calculate and import historical cost data from energy and tariff sensors
+  fields:
+    start_date:
+      name: Start Date
+      description: Date to start calculating from (YYYY-MM-DD)
+      required: true
+      example: "2024-09-01"
+      selector:
+        date:
+    end_date:
+      name: End Date
+      description: Date to end calculation (YYYY-MM-DD). Defaults to today.
+      required: false
+      example: "2024-10-10"
+      selector:
+        date:
+    fallback_tariff:
+      name: Fallback Tariff
+      description: Tariff to use when historical price data is unavailable (per kWh)
+      required: false
+      example: 1.2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.01
+          unit_of_measurement: "currency/kWh"
+
+import_csv_data:
+  fields:
+    csv_urls:
+      required: true
+      example: |
+        l1: "http://192.168.1.100/emeter/0/em_data.csv"
+        l2: "http://192.168.1.100/emeter/1/em_data.csv"
+        l3: "http://192.168.1.100/emeter/2/em_data.csv"
+      selector:
+        object:
+    target_sensors:
+      required: true
+      example: |
+        l1: "sensor.shelly_energy_l1"
+        l2: "sensor.shelly_energy_l2"
+        l3: "sensor.shelly_energy_l3"
+      selector:
+        object:
+    import_range:
+      required: false
+      selector:
+        object:
+    options:
+      required: false
+      description: >
+        Import options. By default only CSV rows newer than the last recorded
+        statistic are processed (incremental). Set full_reimport to true to
+        reprocess the entire CSV history.
+      default:
+        apply_to_cost_sensors: true
+        recalculate_statistics: true
+        backup_existing: true
+        full_reimport: false
+      selector:
+        object:

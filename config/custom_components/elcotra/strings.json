@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ElCoTra, Electricity Cost Tracker",
+        "description": "Measures electricity cost in real-time and shows historical cost data.",
+        "data": {
+          "name": "Name",
+          "energy_sensor": "Energy sensors (select all phases and meters to include)",
+          "tariff_sensor": "Price sensor",
+          "currency": "Currency",
+          "tariff_type": "Tariff type",
+          "fixed_tariff": "Fixed price per kWh"
+        },
+        "data_description": {
+          "tariff_type": "Choose between a fixed price per kWh or a variable price based on a sensor."
+        }
+      },
+      "csv_import": {
+        "title": "Historical data import (optional)",
+        "description": "Configure automatic import of historical energy data from CSV files. This is useful for Shelly devices that export CSV data.",
+        "data": {
+          "auto_import_on_setup": "Automatically import historical data on setup",
+          "csv_url_l1": "CSV URL for phase L1 (e.g., http://192.168.1.100/emeter/0/em_data.csv)",
+          "csv_url_l2": "CSV URL for phase L2 (e.g., http://192.168.1.100/emeter/1/em_data.csv)",
+          "csv_url_l3": "CSV URL for phase L3 (e.g., http://192.168.1.100/emeter/2/em_data.csv)"
+        },
+        "data_description": {
+          "auto_import_on_setup": "If enabled, historical data will be imported automatically when the integration is set up. You can also manually trigger import later using the service."
+        }
+      }
+    },
+    "error": {
+      "tariff_sensor_required": "Tariff sensor is required when using time-based pricing",
+      "download_failed": "Failed to download CSV file",
+      "parse_failed": "Failed to parse CSV file",
+      "invalid_date_range": "End date must be after start date",
+      "no_data": "No data found in CSV file"
+    }
+  },
+  "services": {
+    "import_csv_data": {
+      "name": "Import CSV data",
+      "description": "Import historical energy data from Shelly CSV files via URLs",
+      "fields": {
+        "csv_urls": {
+          "name": "CSV file URLs",
+          "description": "URLs to CSV files for each phase (l1, l2, l3)"
+        },
+        "target_sensors": {
+          "name": "Target energy sensors",
+          "description": "Entity IDs of energy sensors to update with imported data"
+        },
+        "import_range": {
+          "name": "Import date range",
+          "description": "Optional date range to filter imported data"
+        },
+        "options": {
+          "name": "Import options",
+          "description": "Additional options for the import process"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "download_failed": {
+      "message": "Failed to download CSV file from {url}: {error}"
+    },
+    "parse_failed": {
+      "message": "Failed to parse CSV file: {error}"
+    },
+    "invalid_date_range": {
+      "message": "The end date cannot be before the start date"
+    },
+    "no_data": {
+      "message": "No valid data points found in CSV file for phase {phase}"
+    },
+    "sensor_not_found": {
+      "message": "Target sensor {entity_id} for phase {phase} does not exist"
+    }
+  }
+}
