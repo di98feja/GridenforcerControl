@@ -1,0 +1,7 @@
+{
+  "services": {
+    "import_csv_data": {
+      "service": "mdi:database-import"
+    }
+  }
+}

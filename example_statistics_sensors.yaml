@@ -1,0 +1,77 @@
+# Example: Template sensors that read from statistics database
+# Add this to your configuration.yaml
+
+template:
+  - sensor:
+      # Daily cost from statistics
+      - name: "Stugan Cost Today"
+        unique_id: stugan_cost_today_stats
+        unit_of_measurement: "SEK"
+        device_class: monetary
+        state_class: total
+        state: >
+          {% set entity_id = 'sensor.stugan_cost' %}
+          {% set today_start = now().replace(hour=0, minute=0, second=0, microsecond=0) %}
+          {% set today_end = now() %}
+
+          {# Get statistics for today #}
+          {% set stats = namespace(start=0, end=0) %}
+
+          {# This requires custom SQL sensor or using the statistics graph card #}
+          {# For now, use a simpler approach with state at midnight #}
+
+          {% set current = states(entity_id) | float(0) %}
+          {% set midnight = state_attr('input_number.stugan_cost_midnight', 'state') | float(0) %}
+          {{ (current - midnight) | round(2) }}
+        availability: >
+          {{ states('sensor.stugan_cost') not in ['unknown', 'unavailable'] }}
+
+# Alternative: Use SQL sensor to read statistics directly
+sql:
+  - name: "Stugan Cost Today SQL"
+    query: >
+      WITH today_stats AS (
+        SELECT
+          MAX(state) FILTER (WHERE start >= datetime('now', 'start of day')) as current_value,
+          MAX(state) FILTER (WHERE start < datetime('now', 'start of day')) as midnight_value
+        FROM statistics
+        JOIN statistics_meta ON statistics.metadata_id = statistics_meta.id
+        WHERE statistics_meta.statistic_id = 'sensor.stugan_cost'
+        AND start >= datetime('now', '-1 day')
+      )
+      SELECT COALESCE(current_value - midnight_value, 0) as value
+      FROM today_stats;
+    column: "value"
+    unit_of_measurement: "SEK"
+
+  - name: "Stugan Cost This Week SQL"
+    query: >
+      WITH week_stats AS (
+        SELECT
+          MAX(state) as current_value,
+          MIN(state) as week_start_value
+        FROM statistics
+        JOIN statistics_meta ON statistics.metadata_id = statistics_meta.id
+        WHERE statistics_meta.statistic_id = 'sensor.stugan_cost'
+        AND start >= datetime('now', 'weekday 0', '-6 days', 'start of day')
+      )
+      SELECT COALESCE(current_value - week_start_value, 0) as value
+      FROM week_stats;
+    column: "value"
+    unit_of_measurement: "SEK"
+
+  - name: "Stugan Cost This Month SQL"
+    query: >
+      WITH month_stats AS (
+        SELECT
+          MAX(state) as current_value,
+          MIN(state) as month_start_value
+        FROM statistics
+        JOIN statistics_meta ON statistics.metadata_id = statistics_meta.id
+        WHERE statistics_meta.statistic_id = 'sensor.stugan_cost'
+        AND start >= datetime('now', 'start of month')
+      )
+      SELECT COALESCE(current_value - month_start_value, 0) as value
+      FROM month_stats;
+    column: "value"
+    unit_of_measurement: "SEK"
